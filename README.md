@@ -16,3 +16,4 @@
 ## Provision the demo
 
     $ vi provision/vars.yml
+    $ ./install-demo.sh
