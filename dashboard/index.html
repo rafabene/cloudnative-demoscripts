@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+        <title>Dashboard</title>
+    </head>
+    <body>
+              <ul class="nav nav-tabs" id="myTab" role="tablist">
+                  {{#dashboard}}
+                  <li class="nav-item">
+                    <a class="nav-link active" id="kb8sdash-tab" data-toggle="tab" href="#kb8sdash" role="tab" aria-controls="home" aria-selected="true">
+                      Kb8s Dashboard
+                    </a>
+                  </li>
+                  {{/dashboard}}
+                  {{#istio}}
+                  <li class="nav-item dropdown">
+                      <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Istio</a>
+                      <div class="dropdown-menu">
+                        <a class="dropdown-item" href="#grafana" id="grafana-tab" data-toggle="tab" role="tab" aria-controls="grafana" aria-selected="false">Grafana</a>
+                        <a class="dropdown-item" href="#prometheus" id="prometheus-tab" data-toggle="tab" role="tab" aria-controls="prometheus" aria-selected="false">Prometheus</a>
+                        <a class="dropdown-item" href="#jaeger" id="jaeger-tab" data-toggle="tab" role="tab" aria-controls="jaeger" aria-selected="false">Jaeger</a>
+                        <a class="dropdown-item" href="#kiali" id="kiali-tab" data-toggle="tab" role="tab" aria-controls="kiali" aria-selected="false">Kiali</a>
+                      </div>
+                  </li>
+                  {{/istio}}
+                  {{#jenkins}}
+                  <li class="nav-item">
+                    <a class="nav-link" id="jenkins-tab" data-toggle="tab" href="#jenkins" role="tab" aria-controls="jenkins" aria-selected="true">
+                      Jenkins
+                    </a>
+                  </li>
+                  {{/jenkins}}
+                </ul>
+
+      <div class="tab-content" id="myTabContent">
+        {{#dashboard}}
+        <div class="tab-pane fade show active" id="kb8sdash" role="tabpanel" aria-labelledby="kb8sdash-tab">
+            <iframe style="padding-top: 0vh; border: 0; width: 100%; height: 100vh; position: inherit;"
+            id="kb8s-dashboard-iframe"
+            src="http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/#/login"> </iframe>
+        </div>
+        {{/dashboard}}
+        <div class="tab-pane fade" id="grafana" role="tabpanel" aria-labelledby="grafana-tab">
+            <iframe style="padding-top: 0vh; border: 0; width: 100%; height: 90vh; position: inherit;"
+            id="grafana-iframe"
+            src="http://localhost:3000/?orgId=1"> </iframe>
+        </div>
+        <div class="tab-pane fade" id="prometheus" role="tabpanel" aria-labelledby="prometheus-tab">
+            <iframe style="padding-top: 0vh; border: 0; width: 100%; height: 90vh; position: inherit;"
+            id="prometheus-iframe"
+            src="http://localhost:9090/graph?g0.range_input=15m&g0.stacked=1&g0.expr=&g0.tab=0"> </iframe>
+        </div>
+        <div class="tab-pane fade" id="jaeger" role="tabpanel" aria-labelledby="jaeger-tab">
+            <iframe style="padding-top: 0vh; border: 0; width: 100%; height: 90vh; position: inherit;"
+            id="jaeger-iframe"
+            src="http://localhost:15032/jaeger/search"> </iframe>
+        </div>
+        <div class="tab-pane fade" id="kiali" role="tabpanel" aria-labelledby="kiali-tab">
+            <iframe style="padding-top: 0vh; border: 0; width: 100%; height: 90vh; position: inherit;"
+            id="kiali-iframe"
+            src="http://localhost:20001/kiali/"> </iframe>
+        </div>
+        <div class="tab-pane fade" id="jenkins" role="tabpanel" aria-labelledby="jenkins-tab">
+            <iframe style="padding-top: 0vh; border: 0; width: 100%; height: 90vh; position: inherit;"
+            id="jenkins-iframe"
+            src="http://localhost:8081/blue/pipelines"> </iframe>
+        </div>
+      </div>
+      <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+      <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    </body>
+</html>

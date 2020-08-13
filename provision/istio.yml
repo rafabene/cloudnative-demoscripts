@@ -1,0 +1,23 @@
+---
+- name: Get Istio installation binary
+  get_url: 
+    url: "https://github.com/istio/istio/releases/download/1.3.6/istio-1.3.6-linux.tar.gz"
+    dest: "../download/istio.tar.gz"
+    checksum: md5:f3fe9eeb69ae14bbabb9e18fa17d1541
+- name: Extract Istio instalation
+  unarchive:
+    src: "../download/istio.tar.gz"
+    dest: "../download/"
+- name: Install custom CRDs (Custom Resource Definitions)
+  shell: "for i in install/kubernetes/helm/istio-init/files/crd*yaml; do kubectl apply -f $i; done "
+  args:
+    chdir: "../download/istio-1.3.6"
+- name: Install Istio
+  shell: "kubectl apply -f install/kubernetes/istio-demo.yaml"
+  args:
+    chdir: "../download/istio-1.3.6"
+- name: Create 'microservices' namespace
+  shell: "kubectl create namespace microservices|| echo \"Namespace already exists\""
+- name: Enable sidecar injection at 'microservices' namespace
+  shell: "kubectl label namespace microservices istio-injection=enabled --overwrite"
+

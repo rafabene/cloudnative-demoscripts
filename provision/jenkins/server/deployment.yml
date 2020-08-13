@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: cicd
+  name: jenkins
+  labels:
+    app: jenkins
+    demo: cicd
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jenkins
+  template:
+    metadata:
+      labels:
+        app: jenkins
+        demo: cicd
+    spec:
+      containers:
+      - name: jenkins
+        image: rafabene/jenkins
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+        - containerPort: 50000

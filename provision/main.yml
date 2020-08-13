@@ -1,0 +1,20 @@
+- hosts: local
+  vars_files:
+    - vars.yml
+  tasks:
+  - name: Install Unified dashboard
+    include: dashboard.yml
+    when: install_dashboard
+  - name: Install Istio
+    include: istio.yml
+    when: install_istio
+  - name: Isntall Jenkins
+    include: jenkins/jenkins.yml
+    when: install_jenkins
+  - name: Isntall Kafka
+    include: kafka.yml
+    when: install_kafka
+  - name: Isntall EFK
+    include: efk.yml
+    when: install_efk
+

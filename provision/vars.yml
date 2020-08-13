@@ -1,0 +1,16 @@
+# Install unified dashboard
+install_dashboard: true
+# Enable/Disable Istio instalation
+install_istio: true
+# Enable/Disable Jenkins installation
+install_jenkins: true
+# Enable/Disable Kafka installation
+install_kafka: true
+# Enable/Disable EFK (ElasticSearch/FluentD/Kibana installation)
+install_efk: false
+# Enable/Disable Java native builds with GraalVM
+# Note that enabling native build can improve the build time
+# from 3 minutes to 25 minutes
+enable_native_build: false
+# Point to the Github repository that you want to use
+microservices4demo_fork: https://github.com/rafabene/microservices4demo.git

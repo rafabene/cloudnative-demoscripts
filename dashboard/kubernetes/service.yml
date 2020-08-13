@@ -1,0 +1,16 @@
+kind: Service
+apiVersion: v1
+metadata:
+  namespace: default
+  name: dashboard
+  labels:
+    app: dashboard
+spec:
+  selector:
+    app: dashboard
+  type: NodePort
+  ports:
+  - protocol: TCP
+    name: default-port
+    port: 8080
+    targetPort: 8080

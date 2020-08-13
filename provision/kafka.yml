@@ -1,0 +1,29 @@
+---
+- name: Get Strimzi installation binary
+  get_url: 
+    url: "https://github.com/strimzi/strimzi-kafka-operator/archive/0.19.0.tar.gz"
+    dest: "../download/strimzi.tar.gz"
+    checksum: md5:57be0d9770dc39139d402ce9724fa09e
+- name: Extract Strimzi instalation
+  unarchive:
+    src: "../download/strimzi.tar.gz"
+    dest: "../download"
+- name: Create Kafka namespace
+  shell: "kubectl create namespace kafka"
+  args:
+    chdir: "../download/strimzi-kafka-operator-0.19.0"
+  register: cmd
+  failed_when: "('AlreadyExists' not in cmd.stderr) and (cmd.rc != 0)"
+- name: Define Strimzi namespace
+  shell: "sed -i '' 's/namespace: .*/namespace: kafka/' install/cluster-operator/*RoleBinding*.yaml"
+  args:
+    chdir: "../download/strimzi-kafka-operator-0.19.0"
+    warn: false
+- name: Install Strimzi Operator
+  shell: "kubectl apply -f install/cluster-operator -n kafka"
+  args:
+    chdir: "../download/strimzi-kafka-operator-0.19.0"
+- name: Deploy Kafka Cluster
+  shell: "kubectl apply -f examples/kafka/kafka-ephemeral-single.yaml -n kafka"
+  args:
+    chdir: "../download/strimzi-kafka-operator-0.19.0"

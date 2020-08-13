@@ -1,0 +1,13 @@
+---
+- name: Build Dashboard image
+  shell: |
+    eval $(minikube -p demo docker-env)
+    docker build -t rafabene/dashboard ../dashboard/
+- name: Deploy Dashboard into Kubernetes
+  shell: "kubectl apply -f ../dashboard/kubernetes/deployment.yml -f ../dashboard/kubernetes/service.yml"
+- name: Enable Istio Dashboard
+  shell: "kubectl set env deployment dashboard ENABLE_ISTIO=true"
+  when: install_istio
+- name: Enable Kubernetes Dashboard
+  shell: "kubectl set env deployment dashboard ENABLE_JENKINS=true"
+  when: install_jenkins

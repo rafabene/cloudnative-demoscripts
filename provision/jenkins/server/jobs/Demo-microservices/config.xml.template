@@ -1,0 +1,226 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<flow-definition plugin="workflow-job@2.34">
+  <actions>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition@1.3.9"/>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@1.3.9">
+      <jobProperties/>
+      <triggers>
+        <string>hudson.triggers.SCMTrigger</string>
+      </triggers>
+      <parameters>
+        <string>JAVA_BUILD_TYPE</string>
+      </parameters>
+      <options/>
+    </org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction>
+  </actions>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.plugins.jira.JiraProjectProperty plugin="jira@3.0.9"/>
+    <org.jenkinsci.plugins.workflow.job.properties.DisableConcurrentBuildsJobProperty/>
+    <com.coravy.hudson.plugins.github.GithubProjectProperty plugin="github@1.29.4">
+      <projectUrl>{{ microservices4demo_fork }}</projectUrl>
+      <displayName></displayName>
+    </com.coravy.hudson.plugins.github.GithubProjectProperty>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>JAVA_BUILD_TYPE</name>
+          <description>Type of Quarkus build?</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>JVM</string>
+              <string>Native</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+    <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+      <triggers>
+        <hudson.triggers.SCMTrigger>
+          <spec>*/1 * * * * </spec>
+          <ignorePostCommitHooks>false</ignorePostCommitHooks>
+        </hudson.triggers.SCMTrigger>
+      </triggers>
+    </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+  </properties>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@2.74">
+    <script>pipeline{
+    agent{
+        kubernetes(label: &quot;jenkins-slave&quot;,
+        yaml: &quot;&quot;&quot;
+apiVersion: v1
+kind: Pod
+spec:
+  nodeSelector:
+    &quot;beta.kubernetes.io/os&quot;: &quot;linux&quot;
+  containers:
+  - name: slave
+    image: rafabene/jenkins-slave
+    imagePullPolicy: IfNotPresent
+    tty: true
+    command: [&quot;cat&quot;]
+    volumeMounts:
+    - name: dockersock
+      mountPath: /var/run/docker.sock
+    - name: m2
+      mountPath: /root/.m2
+  volumes:
+  - name: dockersock
+    hostPath:
+      path: /var/run/docker.sock
+  - name: m2
+    hostPath:
+      path: /cache/m2
+&quot;&quot;&quot;)
+    }
+    parameters {
+        choice(name: &apos;JAVA_BUILD_TYPE&apos;, choices: [&apos;JVM&apos;, &apos;Native&apos;], description: &apos;Type of Quarkus build?&apos;)
+    }
+    triggers {
+        pollSCM(&apos;*/1 * * * * &apos;)
+    }
+    stages {
+       stage (&apos;SCM checkout&apos;){
+            steps{
+                echo &apos;Checking out git repository&apos;
+                git poll: true, url: &apos;{{ microservices4demo_fork }}&apos;, branch: &apos;master&apos;
+           }
+        }
+        stage (&apos;Build both microservices&apos;){
+            parallel{
+                stage(&apos;Build Hello Service&apos;){
+                    stages{
+                        stage(&apos;Maven Build&apos;){
+                            steps{
+                                container(&apos;slave&apos;){
+                                    echo &apos;Building Java application using maven&apos;
+                                    dir(&apos;hello&apos;){
+                                        sh &apos;mvn package -DskipTests&apos;
+                                    }
+                                }
+                            }
+                        }
+                        stage(&apos;Maven native build&apos;){
+                            when{
+                                expression { params.JAVA_BUILD_TYPE == &apos;Native&apos; }
+                            }
+                            steps{
+                                container(&apos;slave&apos;){
+                                    echo &apos;Building native Java application using maven&apos;
+                                    dir(&apos;hello&apos;){
+                                        sh &apos;mvn package -Pnative -DskipTests&apos;
+                                    }
+                                }
+                            }
+                        }
+                        stage(&apos;Docker build&apos;){
+                            when{
+                                expression { params.JAVA_BUILD_TYPE == &apos;JVM&apos; }
+                            }
+                            steps{
+                                container(&apos;slave&apos;){
+                                    echo &quot;Building docker image&quot;
+                                    dir(&apos;hello&apos;){
+                                        sh &apos;docker build -f src/main/docker/Dockerfile.jvm -t rafabene/ms4demo:java .&apos;
+                                    }
+                                }
+                            }
+                        }
+                        stage(&apos;Docker build with native binary&apos;){
+                            when{
+                                expression { params.JAVA_BUILD_TYPE == &apos;Native&apos; }
+                            }
+                            steps{
+                                container(&apos;slave&apos;){
+                                    echo &quot;Building docker image using native binary&quot;
+                                    dir(&apos;hello&apos;){
+                                        sh &apos;docker build -f src/main/docker/Dockerfile.native -t rafabene/ms4demo:java .&apos;
+                                    }
+                                }
+                            }
+                        }
+                        stage(&apos;Execute Tests&apos;){
+                            steps{
+                                container(&apos;slave&apos;){
+                                    echo &quot;Run Tests&quot;
+                                    dir(&apos;hello&apos;){
+                                        sh &apos;mvn test&apos;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                stage(&apos;Build Ola Service&apos;){
+                    stages{
+                        stage(&apos;NPM Install&apos;){
+                            steps{
+                                container(&apos;slave&apos;){
+                                    echo &apos;Running NPM Install&apos;
+                                    dir(&apos;ola&apos;){
+                                        sh &apos;npm install&apos;
+                                    }
+                                }
+                            }
+                        }
+                        stage(&apos;Docker build&apos;){
+                            steps{
+                                container(&apos;slave&apos;){
+                                    echo &quot;Building docker image&quot;
+                                    dir(&apos;ola&apos;){
+                                        sh &apos;docker build -t rafabene/ms4demo:node .&apos;
+                                    }
+                                }
+                            }
+                        }
+                        stage(&apos;Execute Tests&apos;){
+                            steps{
+                                container(&apos;slave&apos;){
+                                    echo &quot;Run Tests&quot;
+                                    dir(&apos;ola&apos;){
+                                        sh &apos;npm test&apos;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        stage(&apos;Integration tests&apos;){
+            steps{
+                container(&apos;slave&apos;){
+                    echo &quot;Here I execute the Integration tests&quot;
+                }
+            }
+        }
+        stage(&apos;Human approval&apos;){
+            steps{
+                input(message: &apos;Proceed to deployment?&apos;)
+            }
+        }
+        stage(&apos;Deployment&apos;){
+            steps{
+                container(&apos;slave&apos;){
+                    sh &apos;kubectl create namespace microservices || echo &quot;Namespace \&quot;microservices\&quot; already exists&quot;&apos;
+                    sh &apos;kubectl apply -f hello/kubernetes/deployment.yaml&apos;
+                    sh &apos;kubectl apply -f ola/kubernetes/deployment.yaml&apos;
+                    sh &apos;kubectl apply -f ola/kubernetes/deployment-v2.yaml&apos;
+                    sh &apos;kubectl apply -f hello/kubernetes/service.yaml&apos;
+                    sh &apos;kubectl apply -f ola/kubernetes/service.yaml&apos;
+                    sh &apos;kubectl apply -f hello/kubernetes/gateway.yaml -n microservices || echo &quot;Istio not installed&quot;&apos;
+                    sh &quot;&quot;&quot;kubectl patch deployment hello -n microservices -p &apos;{&quot;spec&quot;:{&quot;template&quot;:{&quot;metadata&quot;:{&quot;labels&quot;:{ &quot;build&quot;: &quot;${env.BUILD_NUMBER}&quot;}}}}}&apos; &quot;&quot;&quot;
+                    sh &quot;&quot;&quot;kubectl patch deployment ola-v1 -n microservices -p &apos;{&quot;spec&quot;:{&quot;template&quot;:{&quot;metadata&quot;:{&quot;labels&quot;:{ &quot;build&quot;: &quot;${env.BUILD_NUMBER}&quot;}}}}}&apos; &quot;&quot;&quot;
+                    sh &quot;&quot;&quot;kubectl patch deployment ola-v2 -n microservices -p &apos;{&quot;spec&quot;:{&quot;template&quot;:{&quot;metadata&quot;:{&quot;labels&quot;:{ &quot;build&quot;: &quot;${env.BUILD_NUMBER}&quot;}}}}}&apos; &quot;&quot;&quot;
+                }
+            }
+        }
+    }
+}</script>
+    <sandbox>true</sandbox>
+  </definition>
+  <triggers/>
+  <disabled>false</disabled>
+</flow-definition>

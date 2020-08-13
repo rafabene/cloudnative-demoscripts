@@ -1,0 +1,7 @@
+---
+- name: Create a namespace called 'kube-logging' for EFK
+  shell: "kubectl create namespace kube-logging"
+  register: cmd
+  failed_when: "('AlreadyExists' not in cmd.stderr) and (cmd.rc != 0)"
+- name: Create a EFK stack
+  shell: "kubectl apply -f /vagrant/provision/efk-kb8s.yml"

@@ -1,0 +1,35 @@
+---
+- name: Build Jenkins Slave Base image
+  shell: |
+    eval $(minikube -p demo docker-env)
+    docker build -t rafabene/jenkins-slave-base -f jenkins/slave/Dockerfile.base jenkins/slave
+- name: Build Jenkins Slave image WITHOUT Native builds
+  shell: |
+    eval $(minikube -p demo docker-env)
+    docker build -t rafabene/jenkins-slave -f jenkins/slave/Dockerfile.jvm jenkins/slave
+  when: not enable_native_build
+- name: Build Jenkins Slave image for Native builds
+  shell: |
+    eval $(minikube -p demo docker-env)
+    docker build -t rafabene/jenkins-slave -f jenkins/slave/Dockerfile.native jenkins/slave
+  when: enable_native_build
+- name: Configure Microservices build
+  template: 
+    src: jenkins/server/jobs/Demo-microservices/config.xml.template
+    dest: jenkins/server/jobs/Demo-microservices/config.xml
+- name: Build Jenkins Server image
+  shell: |
+    eval $(minikube -p demo docker-env)
+    docker build -t rafabene/jenkins jenkins/server
+- name: Create a namespace called 'cicd' for Jenkins
+  shell: "kubectl create namespace cicd"
+  register: cmd
+  failed_when: "('AlreadyExists' not in cmd.stderr) and (cmd.rc != 0)"
+- name: Deploy Jekins into Kubernetes
+  shell: "kubectl apply -f jenkins/server/deployment.yml"
+- name: Create a Jenkins Kubernetes Service
+  shell: "kubectl apply -f jenkins/server/service.yml"
+- name: Create RoleBinding for Jenkins
+  shell: "kubectl create clusterrolebinding -n cicd my-jenkins-admin --clusterrole=cluster-admin --serviceaccount=cicd:default"
+  register: cmd
+  failed_when: "('AlreadyExists' not in cmd.stderr) and (cmd.rc != 0)"

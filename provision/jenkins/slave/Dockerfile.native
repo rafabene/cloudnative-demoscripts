@@ -1,0 +1,11 @@
+FROM rafabene/jenkins-slave-base
+
+ENV GRAALVM_HOME=/graalvm-ce-19.2.1
+ENV PATH $PATH:$GRAALVM_HOME/bin
+
+# Install Packages to build native image using GraalVM
+RUN yum install -y gcc glibc-devel zlib-devel
+
+# Install GraalVM
+RUN wget -c https://github.com/oracle/graal/releases/download/vm-19.2.1/graalvm-ce-linux-amd64-19.2.1.tar.gz && tar zxvf graalvm-ce-linux-amd64-19.2.1.tar.gz
+RUN $GRAALVM_HOME/bin/gu install native-image
