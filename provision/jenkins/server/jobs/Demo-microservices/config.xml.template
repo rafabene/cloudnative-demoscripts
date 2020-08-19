@@ -72,7 +72,7 @@ spec:
       path: /var/run/docker.sock
   - name: m2
     hostPath:
-      path: /cache/m2
+      path: /mnt/sda1/cache/m2
 &quot;&quot;&quot;)
     }
     parameters {
