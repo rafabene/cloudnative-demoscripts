@@ -24,7 +24,7 @@
 - name: Create a namespace called 'cicd' for Jenkins
   shell: "kubectl create namespace cicd"
   register: cmd
-  failed_when: "('AlreadyExists' not in cmd.stderr) and (cmd.rc != 0)"
+  failed_when: "('already exists' not in cmd.stderr) and (cmd.rc != 0)"
 - name: Deploy Jekins into Kubernetes
   shell: "kubectl apply -f jenkins/server/deployment.yml"
 - name: Create a Jenkins Kubernetes Service
@@ -32,4 +32,4 @@
 - name: Create RoleBinding for Jenkins
   shell: "kubectl create clusterrolebinding -n cicd my-jenkins-admin --clusterrole=cluster-admin --serviceaccount=cicd:default"
   register: cmd
-  failed_when: "('AlreadyExists' not in cmd.stderr) and (cmd.rc != 0)"
+  failed_when: "('already exists' not in cmd.stderr) and (cmd.rc != 0)"
