@@ -1,4 +1,4 @@
-FROM jenkins/jenkins:lts
+FROM jenkins/jenkins:2.263
 EXPOSE 50000
 EXPOSE 8080
 ENV JAVA_OPTS=-Dio.jenkins.plugins.kubernetes.disableNoDelayProvisioning=true -Djenkins.install.runSetupWizard=false -Dhudson.footerURL=http://cloudnative.oracle.com/
