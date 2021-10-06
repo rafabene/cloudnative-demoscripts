@@ -1,4 +1,4 @@
-FROM oraclelinux:7.8
+FROM oraclelinux:7.9
 
 ENV M2_HOME /opt/maven
 ENV JAVA_HOME /usr/lib/jvm/jre-openjdk
