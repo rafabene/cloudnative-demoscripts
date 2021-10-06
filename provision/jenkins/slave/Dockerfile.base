@@ -17,5 +17,5 @@ RUN yum install -y nodejs
 RUN npm install npm@latest -g
 
 # Install Maven
-RUN wget -c https://www-us.apache.org/dist/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz -P /tmp && tar xf /tmp/apache-maven-3.6.3-bin.tar.gz -C /opt && ln -s /opt/apache-maven-3.6.3 /opt/maven
+RUN wget --no-check-certificate -c https://www.apache.org/dist/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz -P /tmp && tar xf /tmp/apache-maven-3.6.3-bin.tar.gz -C /opt && ln -s /opt/apache-maven-3.6.3 /opt/maven
 
