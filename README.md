@@ -7,8 +7,9 @@
 
 ## Start Minikube
 
-    $ minikube config set memory 16000
-    $ minikube config set cpus 5
+    $ minikube config set memory 16384
+    $ minikube config set cpus 6
+    $ minikube config set kubernetes-version v1.20.2
     $ minikube start -p demo
     $ minikube profile demo
 
