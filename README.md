@@ -7,8 +7,8 @@
 
 ## Start Minikube
 
-    $ minikube config set memory 8192
-    $ minikube config set cpus 3
+    $ minikube config set memory 16000
+    $ minikube config set cpus 5
     $ minikube start -p demo
     $ minikube profile demo
 

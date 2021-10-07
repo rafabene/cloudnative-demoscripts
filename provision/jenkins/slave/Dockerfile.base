@@ -1,21 +1,19 @@
-FROM oraclelinux:7.9
+FROM oraclelinux:8
 
 ENV M2_HOME /opt/maven
 ENV JAVA_HOME /usr/lib/jvm/jre-openjdk
 ENV PATH $PATH:$M2_HOME/bin
 
-# Enable OL7 Addons for Docker installation
-RUN yum-config-manager --enable ol7_addons
 
-# Install Packages (Docker, Java, nodejs repo, wget)
-RUN yum install -y docker-engine java-11-openjdk wget kubectl oracle-nodejs-release-el7
+RUN dnf install -y dnf-utils zip unzip java-11-openjdk wget nodejs npm
+RUN dnf config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo
 
-# Install nodejs after enabling oracle-nodejs-release-el7
-RUN yum install -y nodejs
-
-# Update to latest npm
-RUN npm install npm@latest -g
+# Install Packages (Docker)
+RUN dnf install -y docker-ce 
 
 # Install Maven
 RUN wget --no-check-certificate -c https://www.apache.org/dist/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz -P /tmp && tar xf /tmp/apache-maven-3.6.3-bin.tar.gz -C /opt && ln -s /opt/apache-maven-3.6.3 /opt/maven
 
+# Install Kubectl
+RUN curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+RUN install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
